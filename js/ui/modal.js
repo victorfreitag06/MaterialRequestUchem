@@ -1,14 +1,16 @@
 /**
- * Controle do modal de usuários
+ * Controle do modal de Requisição de Materiais
  */
-const guestFormModal = document.getElementById("guestFormModal");
-const guestForm = document.getElementById("guestForm");
+const materialFormModal = document.getElementById("materialFormModal");
+const materialForm = document.getElementById("materialForm");
 
-window.showAddGuestForm = () => {
-  guestFormModal.style.display = "block";
+// Abrir modal
+window.showAddMaterialForm = () => {
+  materialFormModal.style.display = "block";
 };
 
-window.closeGuestForm = () => {
-  guestFormModal.style.display = "none";
-  guestForm.reset();
+// Fechar modal e resetar campos
+window.closeMaterialForm = () => {
+  materialFormModal.style.display = "none";
+  materialForm.reset();
 };

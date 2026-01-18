@@ -24,51 +24,65 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-const guestTableBody = document.getElementById("guestTableBody");
-const guestForm = document.getElementById("guestForm");
+// ================= ELEMENTOS =================
+const materialTableBody = document.getElementById("materialTableBody");
+const materialForm = document.getElementById("materialForm");
+
+// ================= MODAL =================
+const materialFormModal = document.getElementById("materialFormModal");
+window.showAddMaterialForm = () => materialFormModal.style.display = "block";
+window.closeMaterialForm = () => {
+  materialFormModal.style.display = "none";
+  materialForm.reset();
+};
 
 // ================= SALVAR =================
-guestForm.addEventListener("submit", async e => {
+materialForm.addEventListener("submit", async e => {
   e.preventDefault();
 
-  const usuario = {
-    nome: guestNome.value,
-    cpf: guestCpf.value,
-    email: guestEmail.value,
-    senha: guestSenha.value
+  const requisicao = {
+    nome: document.getElementById("matNome").value,
+    funcao: document.getElementById("matFuncao").value,
+    material: document.getElementById("matMaterial").value,
+    quantidade: document.getElementById("matQtd").value,
+    motivo: document.getElementById("matMotivo").value,
+    equipamento: document.getElementById("matEquipamento").value,
+    data: new Date().toLocaleString()
   };
 
-  await addDoc(collection(db, "usuarios"), usuario);
+  // Salva no Firestore
+  await addDoc(collection(db, "requisicoes"), requisicao);
 
-  emailjs.send("service_ph9nt3h", "template_fnmgrcp", {
-    nome: usuario.nome,
-    email: usuario.email,
-    cpf: usuario.cpf
-  }).catch(err => console.error("EmailJS:", err));
+  // Envia email (opcional)
+  emailjs.send("service_ph9nt3h", "template_fnmgrcp", requisicao)
+    .catch(err => console.error("EmailJS:", err));
 
-  closeGuestForm();
-  carregarUsuarios();
+  closeMaterialForm();
+  carregarMateriais();
 });
 
 // ================= LISTAR =================
-async function carregarUsuarios() {
-  guestTableBody.innerHTML = "";
+async function carregarMateriais() {
+  materialTableBody.innerHTML = "";
 
-  const q = query(collection(db, "usuarios"), orderBy("nome"));
+  const q = query(collection(db, "requisicoes"), orderBy("data", "desc"));
   const snapshot = await getDocs(q);
 
   snapshot.forEach(docSnap => {
-    const u = docSnap.data();
+    const r = docSnap.data();
 
-    guestTableBody.innerHTML += `
+    materialTableBody.innerHTML += `
       <tr>
         <td>${docSnap.id}</td>
-        <td>${u.nome}</td>
-        <td>${u.cpf}</td>
-        <td>${u.email}</td>
+        <td>${r.nome}</td>
+        <td>${r.funcao}</td>
+        <td>${r.material}</td>
+        <td>${r.quantidade}</td>
+        <td>${r.motivo}</td>
+        <td>${r.equipamento || "-"}</td>
         <td>
           <button class="btn btn-danger btn-sm"
-            onclick="excluirUsuario('${docSnap.id}')">
+            onclick="excluirRequisicao('${docSnap.id}')">
             Excluir
           </button>
         </td>
@@ -78,20 +92,20 @@ async function carregarUsuarios() {
 }
 
 // ================= EXCLUIR =================
-window.excluirUsuario = async id => {
-  await deleteDoc(doc(db, "usuarios", id));
-  carregarUsuarios();
+window.excluirRequisicao = async id => {
+  await deleteDoc(doc(db, "requisicoes", id));
+  carregarMateriais();
 };
 
 // ================= FILTRO =================
-window.filtrarUsuarios = texto => {
+window.filtrarMaterial = texto => {
   texto = texto.toLowerCase();
-  document.querySelectorAll("#guestTableBody tr").forEach(tr => {
+  document.querySelectorAll("#materialTableBody tr").forEach(tr => {
     tr.style.display = tr.innerText.toLowerCase().includes(texto)
       ? ""
       : "none";
   });
 };
 
-// INIT
-carregarUsuarios();
+// ================= INIT =================
+carregarMateriais();

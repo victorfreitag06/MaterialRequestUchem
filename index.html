@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Court</title>
+  <title>Requisição de Materiais</title>
 
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -18,73 +19,87 @@
 </head>
 
 <body>
-<div class="container">
+  <div class="container">
 
-  <header>
-    <span class="titulo">Gerenciar Court</span>
+    <header class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+      <span class="titulo">Requisição de Materiais - Universal Chemical</span>
 
-    <div class="selection-menu-banco">
-      <button class="option-banco active" onclick="showBanco('inicio', this)">Início</button>
-      <button class="option-banco" onclick="showBanco('usuarios', this)">Usuários</button>
-      <button class="option-banco" onclick="showBanco('cadastro', this)">Cadastro</button>
+      <div class="selection-menu-banco d-flex flex-wrap gap-2 mt-2 mt-md-0">
+        <button class="option-banco active" data-target="inicio">Início</button>
+        <button class="option-banco" data-target="material">Requisições</button>
+        <button class="option-banco" data-target="email">Email Padrão</button>
+      </div>
+    </header>
+
+    <!-- INÍCIO -->
+    <div id="inicio" class="banco-rolagem show">
+      <h3>Bem-vindo ao sistema da Manutenção | Universal Chemical</h3>
     </div>
-  </header>
 
-  <input
-    type="text"
-    class="form-control mb-3"
-    placeholder="Buscar por nome ou email"
-    onkeyup="filtrarUsuarios(this.value)"
-  />
+    <!-- REQUISIÇÕES -->
+    <div id="material" class="banco-rolagem">
+      <button class="btn mb-3" id="btnAddMaterial">Nova Requisição</button>
+      <input type="text" class="form-control mb-3" placeholder="Buscar por nome ou material" id="filtroMaterial" />
 
-  <!-- INÍCIO -->
-  <div id="inicio" class="banco-rolagem show">
-    <h1>Bem-vindo ao sistema COURT</h1>
-  </div>
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nome</th>
+              <th>Função</th>
+              <th>Material</th>
+              <th>Quantidade</th>
+              <th>Motivo / Local</th>
+              <th>Equipamento</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="materialTableBody"></tbody>
+        </table>
+      </div>
 
-  <!-- USUÁRIOS -->
-  <div id="usuarios" class="banco-rolagem">
-    <button class="btn btn-primary mb-3" onclick="showAddGuestForm()">Incluir</button>
+    </div>
 
-    <table class="table">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Nome</th>
-          <th>CPF</th>
-          <th>Email</th>
-          <th>Ações</th>
-        </tr>
-      </thead>
-      <tbody id="guestTableBody"></tbody>
-    </table>
-  </div>
-
-  <!-- MODAL -->
-  <div id="guestFormModal" style="display:none;">
-    <form id="guestForm">
-      <input id="guestNome" placeholder="Nome" required />
-      <input id="guestCpf" placeholder="CPF" required />
-      <input id="guestEmail" placeholder="Email" required />
-      <input id="guestSenha" type="password" placeholder="Senha" required />
-
-      <button type="submit">Salvar</button>
-      <button type="button" onclick="closeGuestForm()">Cancelar</button>
+    <!-- MODAL DE CADASTRO DE MATERIAL -->
+    <div id="materialFormModal" class="modal-overlay">
+  <div class="modal-content">
+    <form id="materialForm">
+      <h4>Nova Requisição</h4>
+      <input id="matOS" type="number" placeholder="Número da O.S. (4 a 6 dígitos)" required />
+      <input id="matNome" placeholder="Nome" required />
+      <input id="matFuncao" placeholder="Função" required />
+      <input id="matMaterial" placeholder="Material" required />
+      <div style="display:flex; gap:5px; align-items:center;">
+        <input id="matQtd" type="number" placeholder="Quantidade" required style="flex:1;" min="1" />
+        <select id="matUnidade" required style="flex:1;">
+          <option value="">Selecione a unidade</option>
+          <option value="unidades">Unidades</option>
+          <option value="metros">Metros</option>
+          <option value="litros">Litros</option>
+          <option value="kg">Kg</option>
+          <option value="pacotes">Pacotes</option>
+        </select>
+      </div>
+      <input id="matMotivo" placeholder="Motivo | Local" required />
+      <input id="matEquipamento" placeholder="Equipamento" />
+      <div style="margin-top:10px; display:flex; gap:10px;">
+        <button type="submit" class="btn btn-success">Salvar</button>
+        <button type="button" id="btnCancelarMaterial" class="btn btn-secondary">Cancelar</button>
+      </div>
     </form>
   </div>
-
-  <!-- CADASTRO -->
-  <div id="cadastro" class="banco-rolagem">
-    <h2>Cadastro Simples</h2>
-    <input id="nome" placeholder="Nome" />
-    <input id="email" placeholder="Email" />
-    <input id="senha" placeholder="Senha" />
-    <button id="cadastrarBtn">Cadastrar</button>
-  </div>
-
 </div>
 
-<!-- SEU SCRIPT (MODULE) -->
-<script type="module" src="js/script.js"></script>
+
+    <!-- EMAIL PADRÃO -->
+    <div id="email" class="banco-rolagem">
+      <h2>Em manutenção</h2>
+    </div>
+
+  </div>
+
+  <script type="module" defer src="js/script.js"></script>
 </body>
+
 </html>

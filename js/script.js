@@ -30,85 +30,94 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// ================= MENU =================
-// 🔴 ESSENCIAL: precisa estar no window
-window.showBanco = function (id, btn) {
-  document.querySelectorAll('.banco-rolagem')
-    .forEach(div => div.classList.remove('show'));
+// ================= ELEMENTOS =================
+const materialFormModal = document.getElementById("materialFormModal");
+const materialForm = document.getElementById("materialForm");
+const materialTableBody = document.getElementById("materialTableBody");
+const btnAddMaterial = document.getElementById("btnAddMaterial");
+const btnCancelarMaterial = document.getElementById("btnCancelarMaterial");
+const filtroMaterial = document.getElementById("filtroMaterial");
 
-  document.getElementById(id).classList.add('show');
-
-  document.querySelectorAll('.option-banco')
-    .forEach(b => b.classList.remove('active'));
-
-  btn.classList.add('active');
+// ================= MENU NAVBAR =================
+window.showBanco = (id, btn) => {
+  document.querySelectorAll(".banco-rolagem").forEach(div => div.classList.remove("show"));
+  document.getElementById(id).classList.add("show");
+  document.querySelectorAll(".option-banco").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
 };
 
-// ================= MODAL =================
-const guestFormModal = document.getElementById("guestFormModal");
-const guestForm = document.getElementById("guestForm");
-const guestTableBody = document.getElementById("guestTableBody");
-
-window.showAddGuestForm = () => {
-  guestFormModal.style.display = "block";
-};
-
-window.closeGuestForm = () => {
-  guestFormModal.style.display = "none";
-  guestForm.reset();
-};
-
-// ================= SALVAR + EMAIL =================
-guestForm.addEventListener("submit", async e => {
-  e.preventDefault();
-
-  const usuario = {
-    nome: guestNome.value,
-    cpf: guestCpf.value,
-    email: guestEmail.value,
-    senha: guestSenha.value
-  };
-
-  await addDoc(collection(db, "usuarios"), usuario);
-
-  // Email apenas para verificação interna
-  emailjs.send("service_ph9nt3h", "template_fnmgrcp", {
-    nome: usuario.nome,
-    email: usuario.email,
-    cpf: usuario.cpf
-  }).catch(err => {
-    console.error("Erro EmailJS:", err);
+// Navbar moderna sem onclick inline
+document.querySelectorAll(".option-banco").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const target = btn.getAttribute("data-target");
+    showBanco(target, btn);
   });
-
-  closeGuestForm();
-  carregarUsuarios();
 });
 
-// ================= LISTAR USUÁRIOS =================
-async function carregarUsuarios() {
-  guestTableBody.innerHTML = "";
+// ================= MODAL =================
+btnAddMaterial.addEventListener("click", () => materialFormModal.style.display = "block");
+btnCancelarMaterial.addEventListener("click", () => {
+  materialFormModal.style.display = "none";
+  materialForm.reset();
+});
 
-  const q = query(
-    collection(db, "usuarios"),
-    orderBy("nome")
-  );
+// ================= SALVAR REQUISIÇÃO + EMAIL =================
+materialForm.addEventListener("submit", async e => {
+  e.preventDefault();
 
+  const osNumero = document.getElementById("matOS").value.trim();
+  if (!/^\d{4,6}$/.test(osNumero)) {
+    alert("O Número da O.S. deve conter entre 4 e 6 dígitos inteiros.");
+    return;
+  }
+
+  const qtd = document.getElementById("matQtd").value;
+  const unidade = document.getElementById("matUnidade").value;
+  if (!qtd || !unidade) {
+    alert("Informe a quantidade e selecione a unidade.");
+    return;
+  }
+
+  const requisicao = {
+    numeroOS: parseInt(osNumero),
+    nome: document.getElementById("matNome").value,
+    funcao: document.getElementById("matFuncao").value,
+    material: document.getElementById("matMaterial").value,
+    quantidade: `${qtd} ${unidade}`,
+    motivo: document.getElementById("matMotivo").value,
+    equipamento: document.getElementById("matEquipamento").value,
+    data: new Date().toLocaleString()
+  };
+
+  await addDoc(collection(db, "requisicoes"), requisicao);
+
+  emailjs.send("service_ph9nt3h", "template_fnmgrcp", requisicao)
+    .catch(err => console.error("Erro EmailJS:", err));
+
+  materialFormModal.style.display = "none";
+  materialForm.reset();
+  carregarMateriais();
+});
+
+// ================= LISTAR REQUISIÇÕES =================
+async function carregarMateriais() {
+  materialTableBody.innerHTML = "";
+  const q = query(collection(db, "requisicoes"), orderBy("numeroOS", "asc"));
   const snapshot = await getDocs(q);
 
   snapshot.forEach(docSnap => {
-    const u = docSnap.data();
-
-    guestTableBody.innerHTML += `
+    const r = docSnap.data();
+    materialTableBody.innerHTML += `
       <tr>
-        <td>${docSnap.id}</td>
-        <td>${u.nome}</td>
-        <td>${u.cpf}</td>
-        <td>${u.email}</td>
+        <td>${r.numeroOS}</td>
+        <td>${r.nome}</td>
+        <td>${r.funcao}</td>
+        <td>${r.material}</td>
+        <td>${r.quantidade}</td>
+        <td>${r.motivo}</td>
+        <td>${r.equipamento || "-"}</td>
         <td>
-          <button class="btn btn-danger btn-sm"
-            onclick="excluirUsuario('${docSnap.id}')">
-            Excluir
-          </button>
+          <button class="btn btn-danger btn-sm" onclick="excluirMaterial('${docSnap.id}')">Excluir</button>
         </td>
       </tr>
     `;
@@ -116,20 +125,18 @@ async function carregarUsuarios() {
 }
 
 // ================= EXCLUIR =================
-window.excluirUsuario = async id => {
-  await deleteDoc(doc(db, "usuarios", id));
-  carregarUsuarios();
+window.excluirMaterial = async id => {
+  await deleteDoc(doc(db, "requisicoes", id));
+  carregarMateriais();
 };
 
 // ================= FILTRO =================
-window.filtrarUsuarios = texto => {
-  texto = texto.toLowerCase();
-  document.querySelectorAll("#guestTableBody tr").forEach(tr => {
-    tr.style.display = tr.innerText.toLowerCase().includes(texto)
-      ? ""
-      : "none";
+filtroMaterial.addEventListener("keyup", () => {
+  const texto = filtroMaterial.value.toLowerCase();
+  document.querySelectorAll("#materialTableBody tr").forEach(tr => {
+    tr.style.display = tr.innerText.toLowerCase().includes(texto) ? "" : "none";
   });
-};
+});
 
 // ================= INIT =================
-carregarUsuarios();
+carregarMateriais();
